@@ -28,55 +28,55 @@ uniform int pointLightQuantity;
 
 
 vec4 applyLightWithoutPointLight(vec4 sunColor, vec4 blockColor, float bGlow) {
-	float bSun = (sunColor.r + sunColor.g + sunColor.b)/3;
-	float bBlock = (blockColor.r + blockColor.g + blockColor.b)/3;
-	
-	// 1. Mix colors according to their brightness (very bright light has more influence on the color)
+    float bSun = (sunColor.r + sunColor.g + sunColor.b)/3;
+    float bBlock = (blockColor.r + blockColor.g + blockColor.b)/3;
+
+    // 1. Mix colors according to their brightness (very bright light has more influence on the color)
 	vec4 rgba = (2 * bSun * sunColor + bBlock * blockColor) / (2 * bSun + bBlock);
-	
+
 	// 2. Fix brightness
 	rgba *= max(bGlow, max(bSun, bBlock)) / ((rgba.r + rgba.g + rgba.b) / 3);
-	
+
 #if SHADOWQUALITY > 0
-	blockBrightness = clamp(max(bGlow, bBlock) - bSun/2, 0, 1);
+    blockBrightness = clamp(max(bGlow, bBlock) - bSun/2, 0, 1);
 #endif
-	
+
 	// 4. Always fully opaque
-	rgba.a = 1;
+    rgba.a = 1;
 	
-	return rgba;
+    return rgba;
 }
 
 vec4 getPointLightRgbv(vec3 worldPos) {
 #if DYNLIGHTS == 0
-	return vec4(0);
+    return vec4(0);
 #else
-	vec4 pointColSum = vec4(0);
-	float bPointBrightSum = 0;
-		
-	for (int i = 0; i < pointLightQuantity; i++) {
-		vec4 lightVec = -vec4(worldPos.x - pointLights[i].x, worldPos.y - pointLights[i].y, worldPos.z - pointLights[i].z, 1);
-		vec3 color = pointLightColors[i];
-		
-		float dist = pow(1.35, length(lightVec));
-		float bright = (color.r + color.g + color.b);
-		float strength = min(bright/3, bright / dist);
-		
-		pointColSum.w = max(pointColSum.w, strength);
-		bPointBrightSum += strength;
-		
-		pointColSum.r += color.r * strength;
-		pointColSum.g += color.g * strength;
-		pointColSum.b += color.b * strength;
-	}
+    vec4 pointColSum = vec4(0);
+    float bPointBrightSum = 0;
 
-	if (bPointBrightSum > 0) {
-		pointColSum.rgb /= max(1, bPointBrightSum);
-	}
+    for (int i = 0; i < pointLightQuantity; i++) {
+        vec4 lightVec = -vec4(worldPos.x - pointLights[i].x, worldPos.y - pointLights[i].y, worldPos.z - pointLights[i].z, 1);
+        vec3 color = pointLightColors[i];
+
+        float dist = pow(1.35, length(lightVec));
+        float bright = (color.r + color.g + color.b);
+		float strength = min(bright/3, bright / dist);
+
+        pointColSum.w = max(pointColSum.w, strength);
+        bPointBrightSum += strength;
+
+        pointColSum.r += color.r * strength;
+        pointColSum.g += color.g * strength;
+        pointColSum.b += color.b * strength;
+    }
+
+    if (bPointBrightSum > 0) {
+        pointColSum.rgb /= max(1, bPointBrightSum);
+    }
+
+    pointColSum.w /= max(1, glitchStrengthFL * 2);
 	
-	pointColSum.w /= max(1, glitchStrengthFL * 2);
-	
-	return pointColSum;
+    return pointColSum;
 #endif
 }
 
@@ -84,27 +84,27 @@ vec4 getPointLightRgbv(vec3 worldPos) {
 // sunColor = color of the ambient light, or the sun color really
 // lightColor = rgb is block light, a is sun light brightness
 vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldPos) {
-	
-	float bGlow = glowLevel = (renderFlags & GlowLevelBitMask) / 256.0;
-	float contrast = 1.05;	
+    
+    float bGlow = glowLevel = (renderFlags & GlowLevelBitMask) / 256.0;
+    float contrast = 1.05;
 
-	vec3 blockLightColor = lightColor.rgb;
-	// disable sunlight
-	vec3 sunLightColor = vec3(0.0);
+    vec3 blockLightColor = lightColor.rgb;
+    // MODNOTE: disable sunlight and ambient 
+	vec3 sunLightColor = vec3(0);
 
 #if DYNLIGHTS == 0
-	return applyLightWithoutPointLight(vec4(sunLightColor ,1), vec4(blockLightColor,1), bGlow);
+    return applyLightWithoutPointLight(vec4(sunLightColor ,1), vec4(blockLightColor,1), bGlow);
 #else
 
-	vec4 pointColSum = getPointLightRgbv(worldPos.xyz);
+    vec4 pointColSum = getPointLightRgbv(worldPos.xyz);
 	
-	// No sun brightness
-	float bSun = 0.0;
+    // MODNOTE: No sun brightness
+    float bSun = 0; 
 
-	// Block brightness
-	float bBlock = (blockLightColor.r + blockLightColor.g + blockLightColor.b)/3;
-	
-		
+    // Block brightness
+    float bBlock = (blockLightColor.r + blockLightColor.g + blockLightColor.b)/3;
+
+    
 	// if (nightVisionStrength > 0) {
 	//	pointColSum += vec4(0.1, 0.5, 0.1, 0.45) * nightVisionStrength;
 	//	sunLightColor = mix(sunLightColor, vec3(0.1, 0.5, 0.1), nightVisionStrength);
@@ -112,39 +112,41 @@ vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldP
 	//}
 
 	
-	// Point light brightness
-	float bPoint = pointColSum.w;
-	
-	bBlock /= max(1, glitchStrengthFL * 2);
+    // Point light brightness
+    float bPoint = pointColSum.w;
 
-	// Light up all caves
-	bBlock = max(MINBRIGHT, bBlock);
+    bBlock /= max(1, glitchStrengthFL * 2);
 
-	if (bBlock < 0.06) {
-		bBlock = 0.0;
-	}
+    // Light up all caves
+    bBlock = max(MINBRIGHT, bBlock);
 
-	bPoint /= max(1, glitchStrengthFL * 2);	
-	
-	// 1. Mix colors according to their brightness (very bright light has more influence on the color) - changed so the sun is gone
-	vec3 rgba = (bBlock * blockLightColor + bPoint * pointColSum.rgb) / (bBlock + bPoint);
-	
-	// 2. Fix brightness
-	float bMax = max(bGlow, max(bPoint, bBlock));
-	
-	blockLight = rgba;
-	
+    // MODNOTE: Light cutoff for absolute darkness
+    if (bBlock < 0.06) {
+        bBlock = 0;
+    }
+
+    bPoint /= max(1, glitchStrengthFL * 2);
+
+    // 1. Mix colors according to their brightness (very bright light has more influence on the color) - changed so the sun is gone
+    // MODNOTE: I don't really know why but this fixes the jagged shadows
+    vec3 rgba = (bBlock * blockLightColor + bPoint * pointColSum.rgb) / max(1, (bBlock + bPoint));
+
+    // 2. Fix brightness
+    float bMax = max(bGlow, max(bPoint, bBlock));
+
+    blockLight = rgba;
+
 #if SHADOWQUALITY > 0
-	blockBrightness = clamp(max(bGlow, max(bPoint, bBlock)), 0, 1);
+    blockBrightness = clamp(max(bGlow, max(bPoint, bBlock)), 0, 1);
 #endif
-	
-	
-	rgba *= bMax / ((rgba.r + rgba.g + rgba.b) / 3);
-	
+
+    // MODNOTE: I don't really know why but this fixes the jagged shadows
+    rgba *= bMax / max(0.00001, ((rgba.r + rgba.g + rgba.b) / 3));
+
 	rgba *= 1 + bGlow/4;
-	
-	rgba *= contrast;
-	
+    
+    rgba *= contrast;
+
 	/*if (nightVisionStrength > 0)
 	{
 		vec3 nightvision = vec3(
@@ -155,38 +157,38 @@ vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldP
 		rgba.rgb = mix(rgba.rgb, nightvision, nightVisionStrength);
 	}*/
 	
-	return vec4(rgba, 1);
+    return vec4(rgba, 1);
 #endif
 }
 
 
 
 float getFogLevel(vec4 worldPos, float fogMin, float fogDensity) {
-	float depth = length(worldPos.xyz);
-	float clampedDepth = min(250, depth);
-	float heightDiff = worldPos.y - flatFogStart;
+    float depth = length(worldPos.xyz);
+    float clampedDepth = min(250, depth);
+    float heightDiff = worldPos.y - flatFogStart;
 	float extraDistanceFog = max(-flatFogDensity * clampedDepth * (flatFogStart) / 60, 0); // div 60 was 160 before, at 160 thick flat fog looks broken when looking at trees
-	float distanceFog = 1 - 1 / exp(clampedDepth * fogDensity + extraDistanceFog);
-	
-	float flatFog = 1 - 1 / exp(heightDiff * flatFogDensity); 
-	
-	float val = max(flatFog, distanceFog);
-	float nearnessToPlayer = clamp((8-depth)/8, 0, 0.9);
-	val = max(min(0.04, val), val - nearnessToPlayer);
-	
+    float distanceFog = 1 - 1 / exp(clampedDepth * fogDensity + extraDistanceFog);
+
+    float flatFog = 1 - 1 / exp(heightDiff * flatFogDensity);
+
+    float val = max(flatFog, distanceFog);
+    float nearnessToPlayer = clamp((8-depth)/8, 0, 0.9);
+    val = max(min(0.04, val), val - nearnessToPlayer);
+
 	// Needs to be added after so that underwater fog still gets applied. 
-	val += fogMin; 
+    val += fogMin;
 		
-	return clamp(val, 0, 1);
+    return clamp(val, 0, 1);
 }
 
 
 
 vec4 applyFog(vec4 worldPos, vec4 rgbaPixel, vec4 rgbaFog, float fogMin, float fogDensity) {
-	float amount = getFogLevel(worldPos, fogMin, fogDensity);
-	vec4 outcolor = vec4(mix(rgbaPixel.rgb, rgbaFog.rgb, amount), rgbaPixel.a * rgbaFog.a);
+    float amount = getFogLevel(worldPos, fogMin, fogDensity);
+    vec4 outcolor = vec4(mix(rgbaPixel.rgb, rgbaFog.rgb, amount), rgbaPixel.a * rgbaFog.a);
+
+    outcolor = applySpheresFog(outcolor, amount, worldPos.xyz);
 	
-	outcolor = applySpheresFog(outcolor, amount, worldPos.xyz);
-	
-	return outcolor;
+    return outcolor;
 }
