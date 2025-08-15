@@ -89,7 +89,8 @@ vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldP
 	float contrast = 1.05;	
 
 	vec3 blockLightColor = lightColor.rgb;
-	vec3 sunLightColor = lightColor.a * ambientColor.rgb;
+	// disable sunlight
+	vec3 sunLightColor = vec3(0.0);
 
 #if DYNLIGHTS == 0
 	return applyLightWithoutPointLight(vec4(sunLightColor ,1), vec4(blockLightColor,1), bGlow);
@@ -97,17 +98,18 @@ vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldP
 
 	vec4 pointColSum = getPointLightRgbv(worldPos.xyz);
 	
-	// Sun brightness
-	float bSun = (sunLightColor.r + sunLightColor.g + sunLightColor.b)/3;
+	// No sun brightness
+	float bSun = 0.0;
+
 	// Block brightness
 	float bBlock = (blockLightColor.r + blockLightColor.g + blockLightColor.b)/3;
 	
 		
-	if (nightVisionStrength > 0) {
-		pointColSum += vec4(0.1, 0.5, 0.1, 0.45) * nightVisionStrength;
-		sunLightColor = mix(sunLightColor, vec3(0.1, 0.5, 0.1), nightVisionStrength);
-		bSun += nightVisionStrength;
-	}
+	// if (nightVisionStrength > 0) {
+	//	pointColSum += vec4(0.1, 0.5, 0.1, 0.45) * nightVisionStrength;
+	//	sunLightColor = mix(sunLightColor, vec3(0.1, 0.5, 0.1), nightVisionStrength);
+	//	bSun += nightVisionStrength;
+	//}
 
 	
 	// Point light brightness
@@ -118,18 +120,22 @@ vec4 applyLight(vec3 ambientColor, vec4 lightColor, int renderFlags, vec4 worldP
 	// Light up all caves
 	bBlock = max(MINBRIGHT, bBlock);
 
+	if (bBlock < 0.06) {
+		bBlock = 0.0;
+	}
+
 	bPoint /= max(1, glitchStrengthFL * 2);	
 	
-	// 1. Mix colors according to their brightness (very bright light has more influence on the color)
-	vec3 rgba = (2 * bSun * sunLightColor + bBlock * blockLightColor + bPoint * pointColSum.rgb) / (2 * bSun + bBlock + bPoint);
+	// 1. Mix colors according to their brightness (very bright light has more influence on the color) - changed so the sun is gone
+	vec3 rgba = (bBlock * blockLightColor + bPoint * pointColSum.rgb) / (bBlock + bPoint);
 	
 	// 2. Fix brightness
-	float bMax = max(bGlow, max(bPoint, max(bSun, bBlock)));
+	float bMax = max(bGlow, max(bPoint, bBlock));
 	
 	blockLight = rgba;
 	
 #if SHADOWQUALITY > 0
-	blockBrightness = clamp(max(bGlow, max(bPoint, bBlock)) - bSun/2, 0, 1);
+	blockBrightness = clamp(max(bGlow, max(bPoint, bBlock)), 0, 1);
 #endif
 	
 	
