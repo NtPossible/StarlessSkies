@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarlessSkies", "StarlessSkies\StarlessSkies.csproj", "{59CF8056-8609-477E-9D42-C714C4FB7014}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "ZZCakeBuild\CakeBuild.csproj", "{5F0D0077-C917-4352-BCD2-A7FEE4D7DFD6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{59CF8056-8609-477E-9D42-C714C4FB7014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59CF8056-8609-477E-9D42-C714C4FB7014}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59CF8056-8609-477E-9D42-C714C4FB7014}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59CF8056-8609-477E-9D42-C714C4FB7014}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F0D0077-C917-4352-BCD2-A7FEE4D7DFD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F0D0077-C917-4352-BCD2-A7FEE4D7DFD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F0D0077-C917-4352-BCD2-A7FEE4D7DFD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F0D0077-C917-4352-BCD2-A7FEE4D7DFD6}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1C1C7229-9087-4EF6-BD63-FCDB1D3F2659}
+	EndGlobalSection
+EndGlobal

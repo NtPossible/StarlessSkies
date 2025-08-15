@@ -1,0 +1,13 @@
+{
+  "type": "code",
+  "modid": "starlessskies",
+  "name": "StarlessSkies",
+  "authors": [
+    "Unknown"
+  ],
+  "description": "Removes the sun, moon and the sky causing eternal darkness",
+  "version": "1.0.0",
+  "dependencies": {
+    "game": "1.20.12"
+  }
+}
