@@ -5,7 +5,7 @@
   "authors": [
     "Unknown"
   ],
-  "description": "Removes the sun, moon and the sky causing eternal darkness",
+  "description": "Removes the sun, moon and the sky and changes shaders to cause eternal darkness",
   "version": "1.0.0",
   "dependencies": {
     "game": "1.20.12"
